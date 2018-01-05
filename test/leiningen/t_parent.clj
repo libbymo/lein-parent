@@ -5,8 +5,7 @@
             [clojure.test :refer :all]
             [leiningen.core.project :as project]
             [leiningen.install :as install])
-  (:import (java.io FileNotFoundException)
-           (org.sonatype.aether.resolution DependencyResolutionException)))
+  (:import (java.io FileNotFoundException)))
 
 (def m {:a 1
         :b 2
@@ -68,8 +67,10 @@
     (let [project (read-child-project "with_parent_coords")]
       (is (= "foo" (:foo project)))))
   (testing "Error thrown if non-existent coords provided"
-    (is (thrown? DependencyResolutionException
-                 (read-child-project "with_invalid_parent_coords")))))
+    ;; To sidestep broken import statements around aether namespace change
+    ;; opting to evaluate the message.
+    (is (thrown-with-msg? Exception #"Could not find artifact lein-parent:does-not-exist"
+                         (read-child-project "with_invalid_parent_coords")))))
 
 (deftest inherited-values-test
   (testing "managed_dependencies can be inherited from parent"
